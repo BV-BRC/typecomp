@@ -247,7 +247,7 @@ sub ping
 #
 sub auth_ping
 {
-[% IF autxhenticated -%]
+[% IF authenticated -%]
     my($self, $env) = @_;
 
     my $req = Plack::Request->new($env);
