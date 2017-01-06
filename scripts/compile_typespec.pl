@@ -32,6 +32,7 @@ Arguments:
     --impl name		       Use name as the classname for the generated perl implementation module
     --service name	       Use name as the classname for the generated service module
     --psgi name		       Write a PSGI file as name
+    --simple-client name       Use name as the classname for the generated simple client module
     --client name	       Use name as the classname for the generated client module
     --js name		       Use name as the basename for the generated Javascript client module
     --py name		       Use name as the basename for the generated Python client module
@@ -59,12 +60,14 @@ my $dump_parsed;
 my $test_script;
 my $help;
 my $enable_retries;
+my $simple_client_module;
 
 my $rc = GetOptions("scripts=s" => \$scripts_dir,
                     "impl=s"    => \$impl_module_base,
                     "service=s" => \$service_module,
                     "psgi=s"    => \$psgi,
                     "client=s"  => \$client_module,
+                    "simple-client=s"  => \$simple_client_module,
                     "test=s"    => \$test_script,
                     "js=s"      => \$js_module,
                     "py=s"      => \$py_module,
@@ -213,6 +216,7 @@ sub write_service_stubs
         push(@modules, $data);
     }
 
+    my $simple_client_package_name = $simple_client_module || ($service . "SimpleClient");
     my $client_package_name = $client_module || ($service . "Client");
     my $server_package_name = $service_module || ($service . "Server");
     my $python_server_name = $py_server_module || ($service . "Server");
@@ -222,6 +226,15 @@ sub write_service_stubs
     $client_package_file .= ".pm";
     make_path($output_dir . "/" . dirname($client_package_file));
 
+    my $simple_client_package_file;
+    if ($simple_client_module)
+    {
+	$simple_client_package_file = $simple_client_package_name;
+    	$simple_client_package_file =~ s,::,/,g;
+	$simple_client_package_file .= ".pm";
+	make_path($output_dir . "/" . dirname($simple_client_package_file));
+    }
+    
     my $server_package_file = $server_package_name;
     $server_package_file =~ s,::,/,g;
     $server_package_file .= ".pm";
@@ -256,6 +269,7 @@ sub write_service_stubs
     #
     
     my $vars = {
+        simple_client_package_name => ($simple_client_package_name || ""),
         client_package_name => $client_package_name,
         server_package_name => $server_package_name,
         python_server_name => $python_server_name,
@@ -279,6 +293,10 @@ sub write_service_stubs
     $tmpl->process("$tmpl_dir/python_server.tt", $vars, $python_server_file) || die Template->error;
     $tmpl->process("$tmpl_dir/client_stub.tt", $vars, $client_package_file) || die Template->error;
     $tmpl->process("$tmpl_dir/server_stub.tt", $vars, $server_package_file) || die Template->error;
+    if ($simple_client_module)
+    {
+	$tmpl->process("$tmpl_dir/simple_client_stub.tt", $vars, $simple_client_package_file) || die Template->error;
+    }
     if ($psgi_file)
     {
         $tmpl->process("$tmpl_dir/psgi_stub.tt", $vars, $psgi_file) || die Template->error;

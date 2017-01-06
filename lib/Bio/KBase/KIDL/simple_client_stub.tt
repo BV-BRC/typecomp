@@ -1,0 +1,553 @@
+package [% simple_client_package_name %];
+
+use POSIX;
+use strict;
+use Data::Dumper;
+
+my $get_time = sub { time, 0 };
+eval {
+    require Time::HiRes;
+    $get_time = sub { Time::HiRes::gettimeofday() };
+};
+
+# Client version should match Impl version
+# This is a Semantic Version number,
+# http://semver.org
+our $VERSION = "0.1.0";
+
+our $token_path;
+if ($^O eq 'MSWin32')
+{
+    $token_path = "$ENV{HOMEDRIVE}$ENV{HOMEPATH}/.patric_token";
+} else {
+    $token_path = "$ENV{HOME}/.patric_token";
+}
+
+=head1 NAME
+
+[% simple_client_package_name %]
+
+=head1 DESCRIPTION
+
+[% FOREACH module IN modules %]
+[% module.module_doc %]
+[% END %]
+
+=cut
+
+sub new
+{
+    my($class, $url, @args) = @_;
+    
+[% IF default_service_url -%]
+    if (!defined($url))
+    {
+	$url = '[% default_service_url %]';
+    }
+[% END -%]
+
+    my $self = {
+	client => [% simple_client_package_name %]::RpcClient->new,
+	url => $url,
+	headers => [],
+    };
+
+    chomp($self->{hostname} = `hostname`);
+    $self->{hostname} ||= 'unknown-host';
+
+    #
+    # Set up for propagating KBRPC_TAG and KBRPC_METADATA environment variables through
+    # to invoked services. If these values are not set, we create a new tag
+    # and a metadata field with basic information about the invoking script.
+    #
+    if ($ENV{KBRPC_TAG})
+    {
+	$self->{kbrpc_tag} = $ENV{KBRPC_TAG};
+    }
+    else
+    {
+	my ($t, $us) = &$get_time();
+	$us = sprintf("%06d", $us);
+	my $ts = strftime("%Y-%m-%dT%H:%M:%S.${us}Z", gmtime $t);
+	$self->{kbrpc_tag} = "C:$0:$self->{hostname}:$$:$ts";
+    }
+    push(@{$self->{headers}}, 'Kbrpc-Tag', $self->{kbrpc_tag});
+
+    if ($ENV{KBRPC_METADATA})
+    {
+	$self->{kbrpc_metadata} = $ENV{KBRPC_METADATA};
+	push(@{$self->{headers}}, 'Kbrpc-Metadata', $self->{kbrpc_metadata});
+    }
+
+    if ($ENV{KBRPC_ERROR_DEST})
+    {
+	$self->{kbrpc_error_dest} = $ENV{KBRPC_ERROR_DEST};
+	push(@{$self->{headers}}, 'Kbrpc-Errordest', $self->{kbrpc_error_dest});
+    }
+
+[% IF authenticated -%]
+    #
+    # This module requires authentication.
+    #
+    # We create an auth token, passing through the arguments that we were (hopefully) given.
+
+    {
+	my $token;
+	if (exists $ENV{KB_AUTH_TOKEN})
+	{
+	    $token = $ENV{KB_AUTH_TOKEN};
+	}
+	elsif (open(my $tfh, "<", $token_path))
+	{
+	    $token = <$tfh>;
+	    chomp $token;
+	    close($tfh);
+	}
+	if ($token)
+	{
+	    $self->{token} = $token;
+	    $self->{client}->token($token);
+	}
+[% IF authenticated_only -%]
+        else
+        {
+	    #
+	    # All methods in this module require authentication. In this case, if we
+	    # don't have a token, we can't continue.
+	    #
+	    die "No authentication token found and [% simple_client_package_name %] requires authentication";
+	}
+[% END -%]
+    }
+[% END -%]
+
+    my $timeout = $ENV{CDMI_TIMEOUT} || (30 * 60);	 
+    $self->{client}->timeout($timeout);
+    bless $self, $class;
+    #    $self->_validate_version();
+    return $self;
+}
+
+[% FOREACH module IN modules %]
+[% FOREACH method IN module.methods %]
+
+=head2 [% method.name %]
+
+  [% IF method.ret_vars -%][% method.ret_vars -%] = [% END -%]$obj->[% method.name %]([% method.arg_vars %])
+
+=over 4
+
+=item Parameter and return types
+
+=begin html
+
+<pre>
+[% FOREACH docline IN method.arg_doc -%]
+[% docline %]
+[% END %]
+</pre>
+
+=end html
+
+=begin text
+
+[% FOREACH docline IN method.arg_doc -%]
+[% docline %]
+[% END %]
+
+=end text
+
+=item Description
+
+[% method.doc %]
+
+=back
+
+=cut
+
+sub [% method.name %]
+{
+    my($self, @args) = @_;
+
+# Authentication: [% method.authentication %]
+
+    if ((my $n = @args) != [% method.arg_count %])
+    {
+	die("Invalid argument count for function [% method.name %] (received $n, expecting [% method.arg_count %])");
+    }
+[% IF method.arg_count > 0 -%]
+    {
+	my([% method.arg_vars %]) = @args;
+
+	my @_bad_arguments;
+[% FOR param IN method.params -%]
+        ([% param.validator %]) or push(@_bad_arguments, "Invalid type for argument [% param.index %] \"[% param.name %]\" (value was \"[% param.perl_var %]\")");
+[% END -%]
+        if (@_bad_arguments) {
+	    my $msg = "Invalid arguments passed to [% method.name %]:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	    die($msg);
+	}
+    }
+[% END -%]
+
+    my $result = $self->{client}->call($self->{url}, $self->{headers}, {
+	method => "[% module.module_name %].[% method.name %]",
+	params => \@args,
+    });
+    if ($result) {
+	if ($result->is_error) {
+	    die($result->error_message);
+	} else {
+[% IF method.ret_count > 0 -%]
+	    return wantarray ? @{$result->result} : $result->result->[0];
+[% ELSE -%]
+	    return;
+[% END -%]
+	}
+    } else {
+    die("Error invoking method [% method.name %]: " . $self->{client}->status_line);
+    }
+}
+
+[% END %]
+[% END %]
+sub version {
+    my ($self) = @_;
+    my $result = $self->{client}->call($self->{url}, $self->{headers}, {
+        method => "[% module.module_name %].version",
+        params => [],
+    });
+    if ($result) {
+        if ($result->is_error) {
+            die($result->error_message);
+        } else {
+            return wantarray ? @{$result->result} : $result->result->[0];
+        }
+    } else {
+        die("Error invoking method [% method.name %]");
+    }
+}
+
+sub _validate_version {
+    my ($self) = @_;
+    my $svr_version = $self->version();
+    my $client_version = $VERSION;
+    my ($cMajor, $cMinor) = split(/\./, $client_version);
+    my ($sMajor, $sMinor) = split(/\./, $svr_version);
+    if ($sMajor != $cMajor) {
+        die("Major version numbers differ.");
+    }
+    if ($sMinor < $cMinor) {
+        die("Client minor version greater than Server minor version.");
+    }
+    if ($sMinor > $cMinor) {
+        warn "New client version available for [% simple_client_package_name %]\n";
+    }
+    if ($sMajor == 0) {
+        warn "[% simple_client_package_name %] version is $svr_version. API subject to change.\n";
+    }
+}
+
+=head1 TYPES
+
+[% FOREACH type IN module.types %]
+
+=head2 [% type.name %]
+
+=over 4
+
+[% IF type.comment %]
+
+=item Description
+
+[% type.comment %]
+[% END %]
+
+=item Definition
+
+=begin html
+
+<pre>
+[% type.english %]
+</pre>
+
+=end html
+
+=begin text
+
+[% type.english %]
+
+=end text
+
+=back
+
+[% END %]
+
+=cut
+
+package [% simple_client_package_name %]::RpcClient;
+
+use POSIX;
+use strict;
+use LWP::UserAgent;
+use JSON::XS;
+
+sub new
+{
+    my($class) = @_;
+
+    my $self = {
+	ua => LWP::UserAgent->new(),
+	json => JSON::XS->new->allow_nonref->utf8,
+    };
+    return bless $self, $class;
+}
+
+sub status_line {
+    my $self = shift;
+    if(@_) {
+	$self->{status_line} = $_[0];
+    }
+    return $self->{status_line};
+}
+sub token {
+    my $self = shift;
+    if(@_) {
+	$self->{token} = $_[0];
+    }
+    return $self->{token};
+}
+sub json {
+    my $self = shift;
+    if(@_) {
+	$self->{json} = $_[0];
+    }
+    return $self->{json};
+}
+sub id {
+    my $self = shift;
+    if(@_) {
+	$self->{id} = $_[0];
+    }
+    return $self->{id};
+}
+sub ua {
+    my $self = shift;
+    if(@_) {
+	$self->{ua} = $_[0];
+    }
+    return $self->{ua};
+}
+
+sub timeout
+{
+    my($self, $timeout) = @_;
+    $self->{ua}->timeout($timeout);
+}
+
+sub call {
+    my ($self, $uri, $headers, $obj) = @_;
+    my $result;
+
+[% IF enable_client_retry -%]
+
+    my @retries = (1, 2, 5, 10, 20, 60, 60, 60, 60, 60, 60);
+    my %codes_to_retry =  map { $_ => 1 } qw(110 408 502 503 504 200) ;
+    my $n_retries;
+
+    while (1)
+[% END %]
+    {
+	if ($uri =~ /\?/) {
+	    $result = $self->_get($uri);
+	}
+	else {
+	    Carp::croak "not hashref." unless (ref $obj eq 'HASH');
+	    $result = $self->_post($uri, $headers, $obj);
+	}
+[% IF enable_client_retry -%]
+
+	#
+	# Bail early on success.
+	#
+	if ($result->is_success)
+	{
+	    if ($n_retries)
+	    {
+		print STDERR strftime("%F %T", localtime), ": Request succeeded after $n_retries retries\n";
+	    }
+	    last;
+	}
+	$n_retries++;
+
+	#
+	# Failure. See if we need to retry and loop, or bail with
+	# a permanent failure.
+	#
+	
+        my $code = $result->code;
+	my $msg = $result->message;
+	my $want_retry = 0;
+	if ($codes_to_retry{$code})
+	{
+	    $want_retry = 1;
+	}
+	elsif ($code eq 500 && defined( $result->header('client-warning') )
+	       && $result->header('client-warning') eq 'Internal response')
+	{
+	    #
+	    # Handle errors that were not thrown by the web
+	    # server but rather picked up by the client library.
+	    #
+	    # If we got a client timeout or connection refused, let us retry.
+	    #
+	    
+	    if ($msg =~ /timeout|connection refused/i)
+	    {
+		$want_retry = 1;
+	    }
+	    
+	}
+	
+        if (!$want_retry || @retries == 0) {
+	    last;
+        }
+	
+        #
+        # otherwise, sleep & loop.
+        #
+        my $retry_time = shift(@retries);
+        print STDERR strftime("%F %T", localtime), ": Request failed with code=$code msg=$msg, sleeping $retry_time and retrying\n";
+        sleep($retry_time);
+[% END %]
+    }
+
+    my $service = $obj->{method} =~ /^system\./ if ( $obj );
+
+    $self->status_line($result->status_line);
+
+    if ($result->is_success) {
+
+        return unless($result->content); # notification?
+
+        if ($service) {
+            return [% simple_client_package_name %]::ServiceObject->new($result, $self->json);
+        }
+
+        return [% simple_client_package_name %]::ReturnObject->new($result, $self->json);
+    }
+    elsif ($result->content_type eq 'application/json')
+    {
+        return [% simple_client_package_name %]::ReturnObject->new($result, $self->json);
+    }
+    else {
+        return;
+    }
+}
+
+
+sub _post {
+    my ($self, $uri, $headers, $obj) = @_;
+    my $json = $self->json;
+
+    $obj->{version} ||= $self->{version} || '1.1';
+
+    if ($obj->{version} eq '1.0') {
+        delete $obj->{version};
+        if (exists $obj->{id}) {
+            $self->id($obj->{id}) if ($obj->{id}); # if undef, it is notification.
+        }
+        else {
+            $obj->{id} = $self->id || ($self->id('JSON::RPC::Client'));
+        }
+    }
+    else {
+        # $obj->{id} = $self->id if (defined $self->id);
+	# Assign a random number to the id if one hasn't been set
+	$obj->{id} = (defined $self->id) ? $self->id : substr(rand(),2);
+    }
+
+    my $content = $json->encode($obj);
+
+    $self->ua->post(
+        $uri,
+        Content_Type   => $self->{content_type},
+        Content        => $content,
+        Accept         => 'application/json',
+	@$headers,
+	($self->{token} ? (Authorization => $self->{token}) : ()),
+    );
+}
+
+#
+# Inline legacy return objects.
+#
+
+##############################################################################
+
+package [% simple_client_package_name %]::ReturnObject;
+
+$[% simple_client_package_name %]::ReturnObject::VERSION = 0.0;
+
+BEGIN {
+        for my $method (qw/is_success content jsontext version/) {
+	    eval qq|
+		sub $method {
+		    \$_[0]->{$method} = \$_[1] if defined \$_[1];
+		    \$_[0]->{$method};
+		}
+		|;
+	    }
+	}
+    
+sub new {
+    my ($class, $obj, $json) = @_;
+    my $content = ( $json || JSON->new->utf8 )->decode( $obj->content );
+    
+    my $self = bless {
+	jsontext  => $obj->content,
+	content   => $content,
+    }, $class;
+    
+    $content->{error} ? $self->is_success(0) : $self->is_success(1);
+    
+    $content->{version} ? $self->version(1.1) : $self->version(0) ;
+    
+    $self;
+}
+
+sub is_error { !$_[0]->is_success; }
+
+sub error_message {
+        $_[0]->version ? $_[0]->{content}->{error}->{message} : $_[0]->{content}->{error};
+    }
+
+
+sub result {
+        $_[0]->{content}->{result};
+    }
+
+
+##############################################################################
+
+package [% simple_client_package_name %]::ServiceObject;
+
+use base qw([% simple_client_package_name %]::ReturnObject);
+
+
+sub sdversion {
+        $_[0]->{content}->{sdversion} || '';
+    }
+
+
+sub name {
+        $_[0]->{content}->{name} || '';
+    }
+
+
+sub result {
+        $_[0]->{content}->{summary} || '';
+    }
+
+
+1;
