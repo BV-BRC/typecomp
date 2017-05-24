@@ -26,6 +26,11 @@ public class [% module %]
 	caller = new Caller(url);
     }
 
+    public [% module %](String url, String token) throws MalformedURLException
+    {
+	caller = new Caller(url, token);
+    }
+
 [% FOREACH method IN methods %]
 
 [% IF method.doc -%]

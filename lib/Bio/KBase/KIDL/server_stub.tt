@@ -6,6 +6,7 @@ use Moose;
 use POSIX;
 use JSON;
 use Bio::KBase::Log;
+use Class::Load qw();
 use Config::Simple;
 my $get_time = sub { time, 0 };
 eval {
@@ -135,6 +136,23 @@ sub _build_loggers
     return $loggers;
 }
 
+#
+# Override method from RPC::Any::Server::JSONRPC 
+# to eliminate the deprecation warning for Class::MOP::load_class.
+#
+sub _default_error {
+    my ($self, %params) = @_;
+    my $version = $self->default_version;
+    $version =~ s/\./_/g;
+    my $error_class = "JSON::RPC::Common::Procedure::Return::Version_${version}::Error";
+    Class::Load::load_class($error_class);
+    my $error = $error_class->new(%params);
+    my $return_class = "JSON::RPC::Common::Procedure::Return::Version_$version";
+    Class::Load::load_class($return_class);
+    return $return_class->new(error => $error);
+}
+
+
 #override of RPC::Any::Server
 sub handle_error {
     my ($self, $error) = @_;
@@ -186,6 +204,22 @@ sub encode_output_from_exception {
     return $self->encode_output_from_object($json_error);
 }
 
+#
+# another override.
+#
+sub get_package_isa {
+    my ($self, $module) = @_;
+    my $original_isa;
+    { no strict 'refs'; $original_isa = \@{"${module}::ISA"}; }
+    my @new_isa = @$original_isa;
+
+    my $base = $self->package_base;
+    if (not $module->isa($base)) {
+        Class::Load::load_class($base);
+        push(@new_isa, $base);
+    }
+    return \@new_isa;
+}
 sub trim {
     my ($str) = @_;
     if (!(defined $str)) {
@@ -212,6 +246,48 @@ sub getIPAddress {
         }
     }
     return $self->_plack_req->address;
+}
+
+#
+# Ping method reflected from /ping on the service.
+#
+sub ping
+{
+    my($self, $env) = @_;
+    return [ 200, ["Content-type" => "text/plain"], [ "OK\n" ] ];
+}
+
+
+#
+# Authenticated ping method reflected from /auth_ping on the service.
+#
+sub auth_ping
+{
+[% IF authenticated -%]
+    my($self, $env) = @_;
+
+    my $req = Plack::Request->new($env);
+    my $token = $req->header("Authorization");
+
+    if (!$token)
+    {
+	return [401, [], ["Authentication required"]];
+    }
+
+    my $auth_token = Bio::KBase::AuthToken->new(token => $token, ignore_authrc => 1);
+    my $valid = $auth_token->validate();
+
+    if ($valid)
+    {
+	return [200, ["Content-type" => "text/plain"], ["OK " . $auth_token->user_id . "\n"]];
+    }
+    else
+    {
+	return [403, [], "Authentication failed"];
+    }
+[% ELSE -%]
+    return [200, ["Content-type" => "text/plain"], ["OK noauth\n"]];
+[% END -%]    
 }
 
 sub call_method {
@@ -274,6 +350,11 @@ sub call_method {
 	my $tag = $self->_plack_req->header("Kbrpc-Tag");
 	if (!$tag)
 	{
+	    if (!$self->{hostname}) {
+		chomp($self->{hostname} = `hostname`);
+                $self->{hostname} ||= 'unknown-host';
+	    }
+
 	    my ($t, $us) = &$get_time();
 	    $us = sprintf("%06d", $us);
 	    my $ts = strftime("%Y-%m-%dT%H:%M:%S.${us}Z", gmtime $t);
@@ -386,7 +467,7 @@ sub get_method
 			     "There is no method package named '$package'.");
 	}
 	
-	Class::MOP::load_class($module);
+	Class::Load::load_class($module);
     }
     
     if (!$module->can($method)) {
