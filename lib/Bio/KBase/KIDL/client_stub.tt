@@ -1,6 +1,6 @@
 package [% client_package_name %];
 
-use JSON::RPC::Client;
+use JSON::RPC::Legacy::Client;
 use POSIX;
 use strict;
 use Data::Dumper;
@@ -301,7 +301,7 @@ sub _validate_version {
 =cut
 
 package [% client_package_name %]::RpcClient;
-use base 'JSON::RPC::Client';
+use base 'JSON::RPC::Legacy::Client';
 use POSIX;
 use strict;
 
@@ -398,11 +398,11 @@ sub call {
             return JSON::RPC::ServiceObject->new($result, $self->json);
         }
 
-        return JSON::RPC::ReturnObject->new($result, $self->json);
+        return JSON::RPC::Legacy::ReturnObject->new($result, $self->json);
     }
     elsif ($result->content_type eq 'application/json')
     {
-        return JSON::RPC::ReturnObject->new($result, $self->json);
+        return JSON::RPC::Legacy::ReturnObject->new($result, $self->json);
     }
     else {
         return;
@@ -422,7 +422,7 @@ sub _post {
             $self->id($obj->{id}) if ($obj->{id}); # if undef, it is notification.
         }
         else {
-            $obj->{id} = $self->id || ($self->id('JSON::RPC::Client'));
+            $obj->{id} = $self->id || ($self->id('JSON::RPC::Legacy::Client'));
         }
     }
     else {
