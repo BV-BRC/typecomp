@@ -28,6 +28,8 @@ Usage: compile_typespec [arguments] spec-file output-dir
 
 Arguments:
 
+    --patric		       Compile PATRIC3 compatible wrappers
+    --nodocs		       Don't generate inline documentation
     --scripts dir	       Generate simple wrapper scripts
     --impl name		       Use name as the classname for the generated perl implementation module
     --service name	       Use name as the classname for the generated service module
@@ -61,8 +63,12 @@ my $test_script;
 my $help;
 my $enable_retries;
 my $simple_client_module;
+my $patric;
+my $nodocs;
 
 my $rc = GetOptions("scripts=s" => \$scripts_dir,
+		    "patric" 	=> \$patric,
+		    "nodocs" 	=> \$nodocs,
                     "impl=s"    => \$impl_module_base,
                     "service=s" => \$service_module,
                     "psgi=s"    => \$psgi,
@@ -283,6 +289,7 @@ sub write_service_stubs
 			       (!$need_auth->{optional}) && (!$need_auth->{none})) ? 1 : 0),
         psgi_file => $psgi_file,
 	enable_client_retry => $enable_retries,
+	nodocs => ($nodocs ? 1 : 0),
     };
 #    print Dumper($vars);
 
@@ -291,8 +298,16 @@ sub write_service_stubs
     $tmpl->process("$tmpl_dir/js.tt", $vars, $js_file) || die Template->error;
     $tmpl->process("$tmpl_dir/python_client.tt", $vars, $py_file) || die Template->error;
     $tmpl->process("$tmpl_dir/python_server.tt", $vars, $python_server_file) || die Template->error;
-    $tmpl->process("$tmpl_dir/client_stub.tt", $vars, $client_package_file) || die Template->error;
-    $tmpl->process("$tmpl_dir/server_stub.tt", $vars, $server_package_file) || die Template->error;
+    if ($patric)
+    {	
+	$tmpl->process("$tmpl_dir/p3_client_stub.tt", $vars, $client_package_file) || die Template->error;
+	$tmpl->process("$tmpl_dir/p3_server_stub.tt", $vars, $server_package_file) || die Template->error;
+    }
+    else
+    {
+	$tmpl->process("$tmpl_dir/client_stub.tt", $vars, $client_package_file) || die Template->error;
+	$tmpl->process("$tmpl_dir/server_stub.tt", $vars, $server_package_file) || die Template->error;
+    }
     if ($simple_client_module)
     {
 	$tmpl->process("$tmpl_dir/simple_client_stub.tt", $vars, $simple_client_package_file) || die Template->error;
@@ -638,7 +653,7 @@ sub write_module_stubs
     
     if (!(defined $template)) 
     {
-        $template = 'impl_stub.tt';
+        $template = $patric ? 'p3_impl_stub.tt' : 'impl_stub.tt';
     }
     
     my($my_module, $tmpl, $tmpl_dir) = get_module_script_info($module, $vars, $output_dir);
