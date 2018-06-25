@@ -100,7 +100,7 @@ sub new
 	    # All methods in this module require authentication. In this case, if we
 	    # don't have a token, we can't continue.
 	    #
-	    die "Authentication failed: " . $token->error_message;
+	    die "Authentication failed\n";
 	}
 [% END -%]
     }
