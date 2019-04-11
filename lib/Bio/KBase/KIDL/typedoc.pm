@@ -138,36 +138,36 @@ sub new {
 	{#State 0
 		DEFAULT => -2,
 		GOTOS => {
-			'module_list' => 1,
-			'start' => 2
+			'module_list' => 2,
+			'start' => 1
 		}
 	},
 	{#State 1
+		ACTIONS => {
+			'' => 3
+		}
+	},
+	{#State 2
 		ACTIONS => {
 			'' => -1
 		},
 		DEFAULT => -8,
 		GOTOS => {
-			'module_opts' => 4,
-			'module' => 3
-		}
-	},
-	{#State 2
-		ACTIONS => {
-			'' => 5
+			'module_opts' => 5,
+			'module' => 4
 		}
 	},
 	{#State 3
-		DEFAULT => -3
+		DEFAULT => 0
 	},
 	{#State 4
-		ACTIONS => {
-			'module_opt' => 7,
-			'MODULE' => 6
-		}
+		DEFAULT => -3
 	},
 	{#State 5
-		DEFAULT => 0
+		ACTIONS => {
+			'MODULE' => 6,
+			'module_opt' => 7
+		}
 	},
 	{#State 6
 		DEFAULT => -4,
@@ -180,548 +180,548 @@ sub new {
 	},
 	{#State 8
 		ACTIONS => {
-			'IDENT' => 9
+			'IDENT' => 10
 		},
 		GOTOS => {
-			'mod_name_def' => 10
+			'mod_name_def' => 9
 		}
 	},
 	{#State 9
 		ACTIONS => {
-			":" => 11
-		},
-		DEFAULT => -6
+			"{" => 11
+		}
 	},
 	{#State 10
 		ACTIONS => {
-			"{" => 12
-		}
+			":" => 12
+		},
+		DEFAULT => -6
 	},
 	{#State 11
-		ACTIONS => {
-			'IDENT' => 13
+		DEFAULT => -10,
+		GOTOS => {
+			'module_components' => 13
 		}
 	},
 	{#State 12
-		DEFAULT => -10,
-		GOTOS => {
-			'module_components' => 14
+		ACTIONS => {
+			'IDENT' => 14
 		}
 	},
 	{#State 13
-		DEFAULT => -7
-	},
-	{#State 14
 		ACTIONS => {
-			'ASYNC' => 26,
-			"}" => 23,
-			'TYPEDEF' => 22,
-			'DOC_COMMENT' => 21,
+			'ASYNC' => 21,
 			'AUTHENTICATION' => 19,
-			"use" => 16
+			'TYPEDEF' => 18,
+			'DOC_COMMENT' => 15,
+			"}" => 25,
+			"use" => 24
 		},
 		DEFAULT => -27,
 		GOTOS => {
-			'funcdef' => 17,
-			'async_flag' => 20,
-			'module_component' => 15,
-			'auth_type' => 18,
-			'typedef' => 25,
-			'module_component_with_doc' => 24
+			'typedef' => 16,
+			'module_component' => 17,
+			'async_flag' => 22,
+			'auth_type' => 20,
+			'funcdef' => 23,
+			'module_component_with_doc' => 26
 		}
+	},
+	{#State 14
+		DEFAULT => -7
 	},
 	{#State 15
-		DEFAULT => -12
-	},
-	{#State 16
 		ACTIONS => {
-			"module" => 27
+			'AUTHENTICATION' => 19,
+			'TYPEDEF' => 18,
+			'ASYNC' => 21,
+			"use" => 24
+		},
+		DEFAULT => -27,
+		GOTOS => {
+			'async_flag' => 22,
+			'auth_type' => 20,
+			'funcdef' => 23,
+			'typedef' => 16,
+			'module_component' => 27
 		}
 	},
+	{#State 16
+		DEFAULT => -14
+	},
 	{#State 17
-		DEFAULT => -15
+		DEFAULT => -12
 	},
 	{#State 18
 		ACTIONS => {
-			";" => 28
+			'MAPPING' => 32,
+			'TUPLE' => 33,
+			'LIST' => 37,
+			'TYPENAME' => 30,
+			'IDENT' => 36,
+			'STRUCTURE' => 34
+		},
+		GOTOS => {
+			'list' => 29,
+			'structure' => 28,
+			'mapping' => 31,
+			'tuple' => 38,
+			'type' => 35
 		}
 	},
 	{#State 19
 		ACTIONS => {
-			'IDENT' => 29
+			'IDENT' => 39
 		}
 	},
 	{#State 20
 		ACTIONS => {
-			'FUNCDEF' => 30
+			";" => 40
 		}
 	},
 	{#State 21
-		ACTIONS => {
-			'ASYNC' => 26,
-			'TYPEDEF' => 22,
-			"use" => 16,
-			'AUTHENTICATION' => 19
-		},
-		DEFAULT => -27,
-		GOTOS => {
-			'funcdef' => 17,
-			'async_flag' => 20,
-			'module_component' => 31,
-			'auth_type' => 18,
-			'typedef' => 25
-		}
+		DEFAULT => -28
 	},
 	{#State 22
 		ACTIONS => {
-			'IDENT' => 39,
-			'MAPPING' => 34,
-			'LIST' => 41,
-			'TYPENAME' => 32,
-			'STRUCTURE' => 37,
-			'TUPLE' => 35
-		},
-		GOTOS => {
-			'tuple' => 36,
-			'mapping' => 42,
-			'structure' => 38,
-			'list' => 33,
-			'type' => 40
+			'FUNCDEF' => 41
 		}
 	},
 	{#State 23
+		DEFAULT => -15
+	},
+	{#State 24
+		ACTIONS => {
+			"module" => 42
+		}
+	},
+	{#State 25
 		ACTIONS => {
 			";" => 43
 		}
 	},
-	{#State 24
+	{#State 26
 		DEFAULT => -11
 	},
-	{#State 25
-		DEFAULT => -14
-	},
-	{#State 26
-		DEFAULT => -28
-	},
 	{#State 27
-		ACTIONS => {
-			'ident' => 44
-		}
-	},
-	{#State 28
-		DEFAULT => -17
-	},
-	{#State 29
-		DEFAULT => -18
-	},
-	{#State 30
-		ACTIONS => {
-			'LIST' => 41,
-			'MAPPING' => 34,
-			'IDENT' => 45,
-			'TYPENAME' => 32,
-			'STRUCTURE' => 37,
-			'TUPLE' => 35
-		},
-		GOTOS => {
-			'list' => 33,
-			'type' => 46,
-			'structure' => 38,
-			'mapping' => 42,
-			'tuple' => 36
-		}
-	},
-	{#State 31
 		DEFAULT => -13
 	},
-	{#State 32
+	{#State 28
+		DEFAULT => -36
+	},
+	{#State 29
+		DEFAULT => -37
+	},
+	{#State 30
 		DEFAULT => -34
 	},
+	{#State 31
+		DEFAULT => -35
+	},
+	{#State 32
+		ACTIONS => {
+			"<" => 44
+		}
+	},
 	{#State 33
-		DEFAULT => -37
+		ACTIONS => {
+			"<" => 45
+		}
 	},
 	{#State 34
 		ACTIONS => {
-			"<" => 47
+			"{" => 46
 		}
 	},
 	{#State 35
 		ACTIONS => {
-			"<" => 48
+			'IDENT' => 47
 		}
 	},
 	{#State 36
-		DEFAULT => -38
+		DEFAULT => -39
 	},
 	{#State 37
 		ACTIONS => {
-			"{" => 49
+			"<" => 48
 		}
 	},
 	{#State 38
-		DEFAULT => -36
+		DEFAULT => -38
 	},
 	{#State 39
-		DEFAULT => -39
+		DEFAULT => -18
 	},
 	{#State 40
-		ACTIONS => {
-			'IDENT' => 50
-		}
+		DEFAULT => -17
 	},
 	{#State 41
 		ACTIONS => {
-			"<" => 51
+			'STRUCTURE' => 34,
+			'IDENT' => 49,
+			'TYPENAME' => 30,
+			'LIST' => 37,
+			'MAPPING' => 32,
+			'TUPLE' => 33
+		},
+		GOTOS => {
+			'structure' => 28,
+			'list' => 29,
+			'mapping' => 31,
+			'tuple' => 38,
+			'type' => 50
 		}
 	},
 	{#State 42
-		DEFAULT => -35
+		ACTIONS => {
+			'ident' => 51
+		}
 	},
 	{#State 43
 		DEFAULT => -5
 	},
 	{#State 44
 		ACTIONS => {
-			";" => 52
+			'IDENT' => 36,
+			'TYPENAME' => 30,
+			'LIST' => 37,
+			'MAPPING' => 32,
+			'TUPLE' => 33,
+			'STRUCTURE' => 34
+		},
+		GOTOS => {
+			'tuple' => 38,
+			'type' => 52,
+			'structure' => 28,
+			'tuple_type' => 53,
+			'list' => 29,
+			'mapping' => 31
 		}
 	},
 	{#State 45
+		ACTIONS => {
+			'LIST' => 37,
+			'MAPPING' => 32,
+			'TUPLE' => 33,
+			'IDENT' => 36,
+			'TYPENAME' => 30,
+			'STRUCTURE' => 34
+		},
+		GOTOS => {
+			'tuple_types' => 55,
+			'type' => 52,
+			'tuple' => 38,
+			'list' => 29,
+			'tuple_type' => 54,
+			'structure' => 28,
+			'mapping' => 31
+		}
+	},
+	{#State 46
+		ACTIONS => {
+			'IDENT' => 36,
+			'TYPENAME' => 30,
+			'LIST' => 37,
+			'MAPPING' => 32,
+			'TUPLE' => 33,
+			'STRUCTURE' => 34
+		},
+		GOTOS => {
+			'struct_items' => 57,
+			'mapping' => 31,
+			'struct_item' => 56,
+			'structure' => 28,
+			'list' => 29,
+			'tuple' => 38,
+			'type' => 58
+		}
+	},
+	{#State 47
+		DEFAULT => -19,
+		GOTOS => {
+			'@2-3' => 59
+		}
+	},
+	{#State 48
+		ACTIONS => {
+			'TUPLE' => 33,
+			'MAPPING' => 32,
+			'LIST' => 37,
+			'TYPENAME' => 30,
+			'IDENT' => 36,
+			'STRUCTURE' => 34
+		},
+		GOTOS => {
+			'structure' => 28,
+			'list' => 29,
+			'mapping' => 31,
+			'tuple' => 38,
+			'type' => 60
+		}
+	},
+	{#State 49
 		ACTIONS => {
 			'IDENT' => -39
 		},
 		DEFAULT => -21,
 		GOTOS => {
-			'@3-3' => 53
-		}
-	},
-	{#State 46
-		ACTIONS => {
-			'IDENT' => 54
-		}
-	},
-	{#State 47
-		ACTIONS => {
-			'MAPPING' => 34,
-			'LIST' => 41,
-			'IDENT' => 39,
-			'TYPENAME' => 32,
-			'STRUCTURE' => 37,
-			'TUPLE' => 35
-		},
-		GOTOS => {
-			'tuple_type' => 55,
-			'tuple' => 36,
-			'mapping' => 42,
-			'structure' => 38,
-			'list' => 33,
-			'type' => 56
-		}
-	},
-	{#State 48
-		ACTIONS => {
-			'MAPPING' => 34,
-			'LIST' => 41,
-			'IDENT' => 39,
-			'TYPENAME' => 32,
-			'STRUCTURE' => 37,
-			'TUPLE' => 35
-		},
-		GOTOS => {
-			'tuple' => 36,
-			'tuple_type' => 58,
-			'mapping' => 42,
-			'structure' => 38,
-			'tuple_types' => 57,
-			'type' => 56,
-			'list' => 33
-		}
-	},
-	{#State 49
-		ACTIONS => {
-			'STRUCTURE' => 37,
-			'TUPLE' => 35,
-			'MAPPING' => 34,
-			'LIST' => 41,
-			'IDENT' => 39,
-			'TYPENAME' => 32
-		},
-		GOTOS => {
-			'mapping' => 42,
-			'tuple' => 36,
-			'type' => 59,
-			'struct_items' => 60,
-			'list' => 33,
-			'structure' => 38,
-			'struct_item' => 61
+			'@3-3' => 61
 		}
 	},
 	{#State 50
-		DEFAULT => -19,
-		GOTOS => {
-			'@2-3' => 62
+		ACTIONS => {
+			'IDENT' => 62
 		}
 	},
 	{#State 51
 		ACTIONS => {
-			'TYPENAME' => 32,
-			'LIST' => 41,
-			'MAPPING' => 34,
-			'IDENT' => 39,
-			'TUPLE' => 35,
-			'STRUCTURE' => 37
-		},
-		GOTOS => {
-			'mapping' => 42,
-			'tuple' => 36,
-			'list' => 33,
-			'type' => 63,
-			'structure' => 38
+			";" => 63
 		}
 	},
 	{#State 52
-		DEFAULT => -16
-	},
-	{#State 53
 		ACTIONS => {
-			"(" => 64
-		}
-	},
-	{#State 54
-		DEFAULT => -23,
-		GOTOS => {
-			'@4-4' => 65
-		}
-	},
-	{#State 55
-		ACTIONS => {
-			"," => 66
-		}
-	},
-	{#State 56
-		ACTIONS => {
-			'IDENT' => 67
+			'IDENT' => 64
 		},
 		DEFAULT => -50
 	},
+	{#State 53
+		ACTIONS => {
+			"," => 65
+		}
+	},
+	{#State 54
+		DEFAULT => -48
+	},
+	{#State 55
+		ACTIONS => {
+			"," => 66,
+			">" => 67
+		}
+	},
+	{#State 56
+		DEFAULT => -42
+	},
 	{#State 57
 		ACTIONS => {
-			">" => 68,
-			"," => 69
+			"}" => 69,
+			'STRUCTURE' => 34,
+			'TYPENAME' => 30,
+			'IDENT' => 36,
+			'MAPPING' => 32,
+			'TUPLE' => 33,
+			'LIST' => 37
+		},
+		GOTOS => {
+			'tuple' => 38,
+			'type' => 58,
+			'mapping' => 31,
+			'struct_item' => 68,
+			'list' => 29,
+			'structure' => 28
 		}
 	},
 	{#State 58
-		DEFAULT => -48
-	},
-	{#State 59
 		ACTIONS => {
 			'IDENT' => 70
 		}
 	},
+	{#State 59
+		ACTIONS => {
+			";" => 71
+		}
+	},
 	{#State 60
 		ACTIONS => {
-			'IDENT' => 39,
-			'MAPPING' => 34,
-			'LIST' => 41,
-			'TYPENAME' => 32,
-			'STRUCTURE' => 37,
-			'TUPLE' => 35,
-			"}" => 71
-		},
-		GOTOS => {
-			'struct_item' => 72,
-			'structure' => 38,
-			'list' => 33,
-			'type' => 59,
-			'tuple' => 36,
-			'mapping' => 42
+			">" => 72
 		}
 	},
 	{#State 61
-		DEFAULT => -42
+		ACTIONS => {
+			"(" => 73
+		}
 	},
 	{#State 62
-		ACTIONS => {
-			";" => 73
+		DEFAULT => -23,
+		GOTOS => {
+			'@4-4' => 74
 		}
 	},
 	{#State 63
-		ACTIONS => {
-			">" => 74
-		}
+		DEFAULT => -16
 	},
 	{#State 64
-		ACTIONS => {
-			'STRUCTURE' => 37,
-			'TUPLE' => 35,
-			'MAPPING' => 34,
-			'TYPENAME' => 32,
-			'LIST' => 41,
-			'IDENT' => 39
-		},
-		DEFAULT => -29,
-		GOTOS => {
-			'structure' => 38,
-			'type' => 76,
-			'list' => 33,
-			'tuple' => 36,
-			'mapping' => 42,
-			'funcdef_params' => 77,
-			'funcdef_param' => 75
-		}
+		DEFAULT => -51
 	},
 	{#State 65
 		ACTIONS => {
-			"(" => 78
+			'STRUCTURE' => 34,
+			'IDENT' => 36,
+			'TYPENAME' => 30,
+			'LIST' => 37,
+			'MAPPING' => 32,
+			'TUPLE' => 33
+		},
+		GOTOS => {
+			'tuple' => 38,
+			'type' => 52,
+			'structure' => 28,
+			'list' => 29,
+			'tuple_type' => 75,
+			'mapping' => 31
 		}
 	},
 	{#State 66
 		ACTIONS => {
-			'TUPLE' => 35,
-			'STRUCTURE' => 37,
-			'TYPENAME' => 32,
-			'IDENT' => 39,
-			'LIST' => 41,
-			'MAPPING' => 34
+			'LIST' => 37,
+			'MAPPING' => 32,
+			'TUPLE' => 33,
+			'IDENT' => 36,
+			'TYPENAME' => 30,
+			'STRUCTURE' => 34
 		},
 		GOTOS => {
-			'tuple' => 36,
-			'tuple_type' => 79,
-			'mapping' => 42,
-			'structure' => 38,
-			'type' => 56,
-			'list' => 33
+			'tuple' => 38,
+			'type' => 52,
+			'list' => 29,
+			'tuple_type' => 76,
+			'structure' => 28,
+			'mapping' => 31
 		}
 	},
 	{#State 67
-		DEFAULT => -51
-	},
-	{#State 68
 		DEFAULT => -47
 	},
+	{#State 68
+		DEFAULT => -43
+	},
 	{#State 69
-		ACTIONS => {
-			'STRUCTURE' => 37,
-			'TUPLE' => 35,
-			'LIST' => 41,
-			'MAPPING' => 34,
-			'IDENT' => 39,
-			'TYPENAME' => 32
-		},
-		GOTOS => {
-			'mapping' => 42,
-			'tuple_type' => 80,
-			'tuple' => 36,
-			'list' => 33,
-			'type' => 56,
-			'structure' => 38
-		}
+		DEFAULT => -41
 	},
 	{#State 70
 		ACTIONS => {
-			";" => 81,
-			'NULLABLE' => 82
+			'NULLABLE' => 77,
+			";" => 78
 		}
 	},
 	{#State 71
-		DEFAULT => -41
-	},
-	{#State 72
-		DEFAULT => -43
-	},
-	{#State 73
 		DEFAULT => -20
 	},
-	{#State 74
+	{#State 72
 		DEFAULT => -46
 	},
-	{#State 75
-		DEFAULT => -30
-	},
-	{#State 76
+	{#State 73
 		ACTIONS => {
-			'IDENT' => 83
-		},
-		DEFAULT => -33
-	},
-	{#State 77
-		ACTIONS => {
-			")" => 85,
-			"," => 84
-		}
-	},
-	{#State 78
-		ACTIONS => {
-			'LIST' => 41,
-			'IDENT' => 39,
-			'MAPPING' => 34,
-			'TYPENAME' => 32,
-			'STRUCTURE' => 37,
-			'TUPLE' => 35
+			'IDENT' => 36,
+			'LIST' => 37,
+			'TYPENAME' => 30,
+			'TUPLE' => 33,
+			'MAPPING' => 32,
+			'STRUCTURE' => 34
 		},
 		DEFAULT => -29,
 		GOTOS => {
-			'list' => 33,
-			'type' => 76,
-			'structure' => 38,
-			'mapping' => 42,
-			'funcdef_params' => 86,
-			'funcdef_param' => 75,
-			'tuple' => 36
+			'tuple' => 38,
+			'type' => 81,
+			'funcdef_params' => 79,
+			'funcdef_param' => 80,
+			'mapping' => 31,
+			'list' => 29,
+			'structure' => 28
 		}
+	},
+	{#State 74
+		ACTIONS => {
+			"(" => 82
+		}
+	},
+	{#State 75
+		ACTIONS => {
+			">" => 83
+		}
+	},
+	{#State 76
+		DEFAULT => -49
+	},
+	{#State 77
+		ACTIONS => {
+			";" => 84
+		}
+	},
+	{#State 78
+		DEFAULT => -44
 	},
 	{#State 79
 		ACTIONS => {
-			">" => 87
+			")" => 86,
+			"," => 85
 		}
 	},
 	{#State 80
-		DEFAULT => -49
+		DEFAULT => -30
 	},
 	{#State 81
-		DEFAULT => -44
+		ACTIONS => {
+			'IDENT' => 87
+		},
+		DEFAULT => -33
 	},
 	{#State 82
 		ACTIONS => {
-			";" => 88
+			'IDENT' => 36,
+			'LIST' => 37,
+			'STRUCTURE' => 34,
+			'TYPENAME' => 30,
+			'MAPPING' => 32,
+			'TUPLE' => 33
+		},
+		DEFAULT => -29,
+		GOTOS => {
+			'funcdef_params' => 88,
+			'tuple' => 38,
+			'type' => 81,
+			'structure' => 28,
+			'list' => 29,
+			'funcdef_param' => 80,
+			'mapping' => 31
 		}
 	},
 	{#State 83
-		DEFAULT => -32
+		DEFAULT => -40
 	},
 	{#State 84
-		ACTIONS => {
-			'STRUCTURE' => 37,
-			'TUPLE' => 35,
-			'MAPPING' => 34,
-			'LIST' => 41,
-			'IDENT' => 39,
-			'TYPENAME' => 32
-		},
-		GOTOS => {
-			'type' => 76,
-			'list' => 33,
-			'structure' => 38,
-			'mapping' => 42,
-			'funcdef_param' => 89,
-			'tuple' => 36
-		}
+		DEFAULT => -45
 	},
 	{#State 85
 		ACTIONS => {
-			'RETURNS' => 90
+			'IDENT' => 36,
+			'TYPENAME' => 30,
+			'LIST' => 37,
+			'MAPPING' => 32,
+			'TUPLE' => 33,
+			'STRUCTURE' => 34
+		},
+		GOTOS => {
+			'mapping' => 31,
+			'funcdef_param' => 89,
+			'structure' => 28,
+			'list' => 29,
+			'type' => 81,
+			'tuple' => 38
 		}
 	},
 	{#State 86
 		ACTIONS => {
-			")" => 91,
-			"," => 84
+			'RETURNS' => 90
 		}
 	},
 	{#State 87
-		DEFAULT => -40
+		DEFAULT => -32
 	},
 	{#State 88
-		DEFAULT => -45
+		ACTIONS => {
+			")" => 91,
+			"," => 85
+		}
 	},
 	{#State 89
 		DEFAULT => -31
@@ -737,42 +737,42 @@ sub new {
 		},
 		DEFAULT => -25,
 		GOTOS => {
-			'auth_type' => 94,
-			'auth_param' => 93
+			'auth_type' => 93,
+			'auth_param' => 94
 		}
 	},
 	{#State 92
 		ACTIONS => {
-			'IDENT' => 39,
-			'LIST' => 41,
-			'MAPPING' => 34,
-			'TYPENAME' => 32,
-			'STRUCTURE' => 37,
-			'TUPLE' => 35
+			'IDENT' => 36,
+			'LIST' => 37,
+			'STRUCTURE' => 34,
+			'TYPENAME' => 30,
+			'MAPPING' => 32,
+			'TUPLE' => 33
 		},
 		DEFAULT => -29,
 		GOTOS => {
-			'structure' => 38,
-			'list' => 33,
-			'type' => 76,
-			'tuple' => 36,
-			'funcdef_param' => 75,
 			'funcdef_params' => 95,
-			'mapping' => 42
+			'type' => 81,
+			'tuple' => 38,
+			'structure' => 28,
+			'list' => 29,
+			'mapping' => 31,
+			'funcdef_param' => 80
 		}
 	},
 	{#State 93
+		DEFAULT => -26
+	},
+	{#State 94
 		ACTIONS => {
 			";" => 96
 		}
 	},
-	{#State 94
-		DEFAULT => -26
-	},
 	{#State 95
 		ACTIONS => {
-			"," => 84,
-			")" => 97
+			")" => 97,
+			"," => 85
 		}
 	},
 	{#State 96
@@ -784,7 +784,7 @@ sub new {
 		},
 		DEFAULT => -25,
 		GOTOS => {
-			'auth_type' => 94,
+			'auth_type' => 93,
 			'auth_param' => 98
 		}
 	},
@@ -1286,7 +1286,7 @@ sub Lexer {
 		    for my $l (@lines)
 		    {
 			$l =~ s/\t/        /g;
-			$l =~ s/^\s{$x}//;
+			$l =~ s/^\s$x//;
 			push(@new, $l);
 		    }
 		}

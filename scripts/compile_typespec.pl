@@ -65,10 +65,12 @@ my $enable_retries;
 my $simple_client_module;
 my $patric;
 my $nodocs;
+my $no_typedocs;
 
 my $rc = GetOptions("scripts=s" => \$scripts_dir,
 		    "patric" 	=> \$patric,
 		    "nodocs" 	=> \$nodocs,
+		    "no-typedocs" 	=> \$no_typedocs,
                     "impl=s"    => \$impl_module_base,
                     "service=s" => \$service_module,
                     "psgi=s"    => \$psgi,
@@ -290,6 +292,7 @@ sub write_service_stubs
         psgi_file => $psgi_file,
 	enable_client_retry => $enable_retries,
 	nodocs => ($nodocs ? 1 : 0),
+	no_typedocs => ($no_typedocs ? 1 : 0),
     };
 #    print Dumper($vars);
 
