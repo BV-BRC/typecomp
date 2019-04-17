@@ -2,7 +2,6 @@ package Bio::KBase::KIDL::KBT::Typedef;
 
 use Moose;
 use Data::Dumper;
-use Lingua::EN::Inflect 'A';
 
 has 'alias_type' => (is => 'rw');
 has 'name' => (isa => 'Str', is => 'rw');
@@ -31,7 +30,17 @@ sub english
 {
     my($self) = @_;
     
-    return A($self->name);
+    my $t = $self->name;
+    if ($t =~ /^[aeiou]/i)
+    {
+	$t = "an $t";
+    }
+    else
+    {
+	$t = "a $t";
+    }
+    
+    return $t;
 }
 
 sub subtypes
