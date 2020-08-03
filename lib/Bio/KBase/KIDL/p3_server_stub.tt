@@ -312,7 +312,7 @@ sub call_method {
 	#
 	# Set up environment for user-level error reporting.
 	#
-	my $user_error = File::Temp->new(UNLINK => 0);
+	my $user_error = File::Temp->new(UNLINK => 1);
 	close($user_error);
 	$ENV{P3_USER_ERROR_DESTINATION} = "$user_error";
 
