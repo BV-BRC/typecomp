@@ -1,6 +1,5 @@
 package Bio::KBase::KIDL::KBT::Scalar;
 use Moose;
-use Lingua::EN::Inflect 'A';
 
 use Moose::Util::TypeConstraints;
 enum 'ScalarType' => [qw(int float string bool)];
@@ -39,7 +38,17 @@ sub as_string
 sub english
 {
     my($self) = @_;
-    return A($self->scalar_type);
+    my $t = $self->scalar_type;
+    if ($t =~ /^[aeiou]/i)
+    {
+	$t = "an $t";
+    }
+    else
+    {
+	$t = "a $t";
+    }
+    
+    return $t;
 }
 
 sub subtypes

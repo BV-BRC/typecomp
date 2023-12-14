@@ -1,6 +1,8 @@
 package Bio::KBase::KIDL::KBT::List;
 
 use Moose;
+use strict;
+use Data::Dumper;
 
 has 'element_type' => (is => 'rw');
 

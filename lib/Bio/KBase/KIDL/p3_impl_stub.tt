@@ -34,16 +34,18 @@ sub new
     }
     return $self;
 }
-[% IF NOT nodocs %]
+[% IF NOT nodocs -%]
 =head1 METHODS
-[% END %]
-[% FOREACH method IN module.methods %]
-[% IF NOT nodocs %]
+[% END -%]
+[% FOREACH method IN module.methods -%]
+[% IF NOT nodocs -%]
 =head2 [% method.name %]
 
   [% IF method.ret_vars -%][% method.ret_vars -%] = [% END -%]$obj->[% method.name %]([% method.arg_vars %])
 
 =over 4
+
+[% IF NOT no_typedocs -%]
 
 =item Parameter and return types
 
@@ -52,7 +54,7 @@ sub new
 <pre>
 [% FOREACH docline IN method.arg_doc -%]
 [% docline %]
-[% END %]
+[% END -%]
 </pre>
 
 =end html
@@ -61,15 +63,16 @@ sub new
 
 [% FOREACH docline IN method.arg_doc -%]
 [% docline %]
-[% END %]
+[% END -%]
 
 =end text
+[% END -%]
 
 
 
 =item Description
 
-[% method.doc %]
+[% method.doc -%]
 
 =back
 
@@ -149,6 +152,7 @@ sub version {
     return $VERSION;
 }
 [% IF NOT nodocs %]
+[% IF NOT no_typedocs %]
 
 =head1 TYPES
 
@@ -158,12 +162,12 @@ sub version {
 
 =over 4
 
-[% IF type.comment %]
+[% IF type.comment -%]
 
 =item Description
 
 [% type.comment %]
-[% END %]
+[% END -%]
 
 =item Definition
 
@@ -183,8 +187,10 @@ sub version {
 
 =back
 
-[% END %]
+[% END -%]
 
 =cut
-[% END %]
+[% END -%]
+[% END -%]
+
 1;
