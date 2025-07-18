@@ -2,7 +2,7 @@ package Bio::KBase::KIDL::KBT::Scalar;
 use Moose;
 
 use Moose::Util::TypeConstraints;
-enum 'ScalarType' => [qw(int float string bool)];
+enum 'ScalarType' => [qw(int float string bool freeform)];
 
 has 'scalar_type' => (isa => 'ScalarType', is => 'rw');
 
@@ -25,8 +25,15 @@ sub get_validation_code
 sub get_validation_routine
 {
     my($self, $var) = @_;
-    my $val = "!ref($var)";
-    return $val;
+    if ($self->scalar_type eq 'freeform')
+    {
+	return "1";
+    }
+    else
+    {
+	my $val = "!ref($var)";
+	return $val;
+    }
 }
 
 sub as_string
